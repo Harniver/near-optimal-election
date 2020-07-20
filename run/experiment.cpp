@@ -12,6 +12,7 @@ using namespace coordination::tags;
 #define AREA        1000
 #define SPEED       0
 #define END_TIME    200
+#define DIE_TIME    100
 
 using spawn_s = sequence::multiple<distribution::constant<times_t, 0>, DEVICE_NUM>;
 
@@ -56,6 +57,7 @@ DECLARE_OPTIONS(opt,
     >,
     tuple_store<
         area,       double,
+        die,        times_t,
         speed,      double,
 
         diam_s1,    device_t,
@@ -86,6 +88,7 @@ DECLARE_OPTIONS(opt,
     init<
         x,          rectangle_d,
         area,       distribution::constant<double, AREA>,
+        die,        distribution::constant<times_t, DIE_TIME>,
         speed,      distribution::constant<double, SPEED>
     >,
     connector<connect::fixed<100>>

@@ -27,6 +27,9 @@ namespace tags {
     //! @brief The size of the area where devices are located.
     struct area {};
 
+    //! @brief The time when node 0 should remove itself.
+    struct die {};
+
     //! @brief The movement speed of devices.
     struct speed {};
 
@@ -74,7 +77,8 @@ FUN(T) T stabiliser(ARGS, T value, int delay) { CODE
 FUN() void election_compare(ARGS) { CODE
     double L = node.storage(tags::area{});
     rectangle_walk(CALL, make_vec(0,0), make_vec(L,L), node.storage(tags::speed{}), 1);
-    
+    if (node.uid == 0 and node.current_time() >= node.storage(tags::die{})) node.terminate();
+
     device_t diam = diameter_election(CALL, L*0.015);
     device_t wave = wave_election(CALL);
     device_t wav2 = wave_election(CALL, node.uid, [](int x){ return 2*x+1; });
