@@ -1,8 +1,8 @@
 cc_binary(
-    name = "runner",
-    srcs = ["runner.cpp"],
+    name = "experiment",
+    srcs = ["experiment.cpp"],
     deps = [
         "@fcpp//lib:fcpp",
-        "//lib:collection_compare",
+        "//fcpp:election_compare",
     ],
 )
