@@ -28,36 +28,30 @@ namespace tags {
     struct area {};
 
     //! @brief The time when node 0 should remove itself.
-    struct die {};
+    struct die_time {};
 
     //! @brief The movement speed of devices.
     struct speed {};
 
     //! @brief Output values.
     //! @{
-    struct diam_s1 {};
-    struct wave_s1 {};
-    struct wav2_s1 {};
-    struct wav3_s1 {};
-    struct colr_s1 {};
+    struct diam__leaders {};
+    struct wave__leaders {};
+    struct wav2__leaders {};
+    struct wav3__leaders {};
+    struct colr__leaders {};
 
-    struct diam_s2 {};
-    struct wave_s2 {};
-    struct wav2_s2 {};
-    struct wav3_s2 {};
-    struct colr_s2 {};
+    struct diam__filtered {};
+    struct wave__filtered {};
+    struct wav2__filtered {};
+    struct wav3__filtered {};
+    struct colr__filtered {};
 
-    struct diam_s4 {};
-    struct wave_s4 {};
-    struct wav2_s4 {};
-    struct wav3_s4 {};
-    struct colr_s4 {};
-
-    struct diam_s8 {};
-    struct wave_s8 {};
-    struct wav2_s8 {};
-    struct wav3_s8 {};
-    struct colr_s8 {};
+    struct diam__correct {};
+    struct wave__correct {};
+    struct wav2__correct {};
+    struct wav3__correct {};
+    struct colr__correct {};
     //! @}
 }
 
@@ -76,38 +70,33 @@ FUN(T) T stabiliser(ARGS, T value, int delay) { CODE
 //! @brief Computes several election algorithms for comparing them.
 FUN() void election_compare(ARGS) { CODE
     double L = node.storage(tags::area{});
-    rectangle_walk(CALL, make_vec(0,0), make_vec(L,L), node.storage(tags::speed{}), 1);
-    if (node.uid == 0 and node.current_time() >= node.storage(tags::die{})) node.terminate();
+    rectangle_walk(CALL, make_vec(0,0), make_vec(L,2), node.storage(tags::speed{}), 1);
+    bool perturbation = node.current_time() >= node.storage(tags::die_time{});
+    if (node.uid == 0 and perturbation) node.terminate();
 
-    device_t diam = diameter_election(CALL, L*0.015);
+    device_t diam = diameter_election(CALL, L+2);
     device_t wave = wave_election(CALL);
     device_t wav2 = wave_election(CALL, node.uid, [](int x){ return 2*x+1; });
     device_t wav3 = wave_election(CALL, node.uid, [](int x){ return 3*x+1; });
     device_t colr = color_election(CALL);
-    
-    node.storage(tags::diam_s1{}) = diam;
-    node.storage(tags::wave_s1{}) = wave;
-    node.storage(tags::wav2_s1{}) = wav2;
-    node.storage(tags::wav3_s1{}) = wav3;
-    node.storage(tags::colr_s1{}) = colr;
-    
-    node.storage(tags::diam_s2{}) = stabiliser(CALL, diam, 2);
-    node.storage(tags::wave_s2{}) = stabiliser(CALL, wave, 2);
-    node.storage(tags::wav2_s2{}) = stabiliser(CALL, wav2, 2);
-    node.storage(tags::wav3_s2{}) = stabiliser(CALL, wav3, 2);
-    node.storage(tags::colr_s2{}) = stabiliser(CALL, colr, 2);
-    
-    node.storage(tags::diam_s4{}) = stabiliser(CALL, diam, 4);
-    node.storage(tags::wave_s4{}) = stabiliser(CALL, wave, 4);
-    node.storage(tags::wav2_s4{}) = stabiliser(CALL, wav2, 4);
-    node.storage(tags::wav3_s4{}) = stabiliser(CALL, wav3, 4);
-    node.storage(tags::colr_s4{}) = stabiliser(CALL, colr, 4);
-    
-    node.storage(tags::diam_s8{}) = stabiliser(CALL, diam, 8);
-    node.storage(tags::wave_s8{}) = stabiliser(CALL, wave, 8);
-    node.storage(tags::wav2_s8{}) = stabiliser(CALL, wav2, 8);
-    node.storage(tags::wav3_s8{}) = stabiliser(CALL, wav3, 8);
-    node.storage(tags::colr_s8{}) = stabiliser(CALL, colr, 8);
+
+    node.storage(tags::diam__leaders{}) = diam;
+    node.storage(tags::wave__leaders{}) = wave;
+    node.storage(tags::wav2__leaders{}) = wav2;
+    node.storage(tags::wav3__leaders{}) = wav3;
+    node.storage(tags::colr__leaders{}) = colr;
+
+    node.storage(tags::diam__correct{}) = diam == perturbation;
+    node.storage(tags::wave__correct{}) = wave == perturbation;
+    node.storage(tags::wav2__correct{}) = wav2 == perturbation;
+    node.storage(tags::wav3__correct{}) = wav3 == perturbation;
+    node.storage(tags::colr__correct{}) = colr == perturbation;
+
+    node.storage(tags::diam__filtered{}) = stabiliser(CALL, diam, 4);
+    node.storage(tags::wave__filtered{}) = stabiliser(CALL, wave, 4);
+    node.storage(tags::wav2__filtered{}) = stabiliser(CALL, wav2, 4);
+    node.storage(tags::wav3__filtered{}) = stabiliser(CALL, wav3, 4);
+    node.storage(tags::colr__filtered{}) = stabiliser(CALL, colr, 4);
 }
 
 
