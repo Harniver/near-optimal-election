@@ -60,7 +60,7 @@ In order to get started on your machine you need the following installed:
 
 Once you have them installed, you should be able to run:
 ```
-./make.sh run -O experiment
-./make.sh run -O parameter
+./make.sh gcc run -O experiment
+./make.sh gcc run -O parameter
 ```
 getting output about building the experiments and running them.
