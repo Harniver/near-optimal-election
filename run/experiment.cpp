@@ -52,7 +52,8 @@ DECLARE_OPTIONS(opt,
     round_schedule<round_s>,
     exports<
         tuple<device_t, device_t, int>, vec<2>,
-        tuple<device_t, int>, tuple<device_t, int, int, int>, tuple<bool,device_t,int,device_t>
+        tuple<device_t, int>, tuple<device_t, int, int, int>,
+        tuple<bool,device_t,int,device_t>, tuple<bool,device_t,int,device_t,bool>
     >,
     log_schedule<export_s>,
     aggregators<
@@ -61,18 +62,21 @@ DECLARE_OPTIONS(opt,
         wav2__leaders,      aggregator::distinct<device_t>,
         wav3__leaders,      aggregator::distinct<device_t>,
         colr__leaders,      aggregator::distinct<device_t>,
+        done__leaders,      aggregator::distinct<device_t>,
 
         diam__filtered,     aggregator::distinct<device_t>,
         wave__filtered,     aggregator::distinct<device_t>,
         wav2__filtered,     aggregator::distinct<device_t>,
         wav3__filtered,     aggregator::distinct<device_t>,
         colr__filtered,     aggregator::distinct<device_t>,
+        done__filtered,     aggregator::distinct<device_t>,
 
         diam__correct,      aggregator::sum<int>,
         wave__correct,      aggregator::sum<int>,
         wav2__correct,      aggregator::sum<int>,
         wav3__correct,      aggregator::sum<int>,
-        colr__correct,      aggregator::sum<int>
+        colr__correct,      aggregator::sum<int>,
+        done__correct,      aggregator::sum<int>
     >,
     tuple_store<
         area,               double,
@@ -84,18 +88,21 @@ DECLARE_OPTIONS(opt,
         wav2__leaders,      device_t,
         wav3__leaders,      device_t,
         colr__leaders,      device_t,
+        done__leaders,      device_t,
 
         diam__filtered,     device_t,
         wave__filtered,     device_t,
         wav2__filtered,     device_t,
         wav3__filtered,     device_t,
         colr__filtered,     device_t,
+        done__filtered,     device_t,
 
         diam__correct,      int,
         wave__correct,      int,
         wav2__correct,      int,
         wav3__correct,      int,
-        colr__correct,      int
+        colr__correct,      int,
+        done__correct,      int
     >,
     spawn_schedule<spawn_s<is_sync>>,
     init<
@@ -114,7 +121,7 @@ auto make_parameters(bool is_sync, std::string var = "none") {
         batch::arithmetic<seed>(0, runs-1, 1),
         batch::constant<sync>(is_sync),
         batch::arithmetic<speed>(0.25 * (var == "speed"), 0.5 * (var == "speed"), 0.25),
-        batch::arithmetic<dens>(10 + 10 * (var != "dens"), 30, 20),
+        batch::arithmetic<dens>(10 + 10 * (var != "dens"), 40, 30),
         batch::arithmetic<area>(10 + 10 * (var != "area"), 40, 30),
         batch::stringify<output>("output/raw/experiment", "txt"),
         batch::formula<round_dev>([&](auto const& t){ return is_sync ? 0 : 0.25; }),
