@@ -49,6 +49,7 @@ DECLARE_OPTIONS(opt,
     synchronised<is_sync>,
     parallel<false>,
     program<main>,
+    retain<metric::retain<2>>,
     round_schedule<round_s>,
     exports<
         tuple<device_t, device_t, int>, vec<2>,
@@ -57,26 +58,23 @@ DECLARE_OPTIONS(opt,
     >,
     log_schedule<export_s>,
     aggregators<
-        diam__leaders,      aggregator::distinct<device_t>,
+//        diam__leaders,      aggregator::distinct<device_t>,
         wave__leaders,      aggregator::distinct<device_t>,
         wav2__leaders,      aggregator::distinct<device_t>,
         wav3__leaders,      aggregator::distinct<device_t>,
         colr__leaders,      aggregator::distinct<device_t>,
-        done__leaders,      aggregator::distinct<device_t>,
 
-        diam__filtered,     aggregator::distinct<device_t>,
+//        diam__filtered,     aggregator::distinct<device_t>,
         wave__filtered,     aggregator::distinct<device_t>,
         wav2__filtered,     aggregator::distinct<device_t>,
         wav3__filtered,     aggregator::distinct<device_t>,
         colr__filtered,     aggregator::distinct<device_t>,
-        done__filtered,     aggregator::distinct<device_t>,
 
-        diam__correct,      aggregator::sum<int>,
+//        diam__correct,      aggregator::sum<int>,
         wave__correct,      aggregator::sum<int>,
         wav2__correct,      aggregator::sum<int>,
         wav3__correct,      aggregator::sum<int>,
-        colr__correct,      aggregator::sum<int>,
-        done__correct,      aggregator::sum<int>
+        colr__correct,      aggregator::sum<int>
     >,
     tuple_store<
         area,               double,
@@ -88,21 +86,18 @@ DECLARE_OPTIONS(opt,
         wav2__leaders,      device_t,
         wav3__leaders,      device_t,
         colr__leaders,      device_t,
-        done__leaders,      device_t,
 
         diam__filtered,     device_t,
         wave__filtered,     device_t,
         wav2__filtered,     device_t,
         wav3__filtered,     device_t,
         colr__filtered,     device_t,
-        done__filtered,     device_t,
 
         diam__correct,      int,
         wave__correct,      int,
         wav2__correct,      int,
         wav3__correct,      int,
-        colr__correct,      int,
-        done__correct,      int
+        colr__correct,      int
     >,
     spawn_schedule<spawn_s<is_sync>>,
     init<
