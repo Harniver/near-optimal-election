@@ -58,46 +58,40 @@ DECLARE_OPTIONS(opt,
     >,
     log_schedule<export_s>,
     aggregators<
-//        diam__leaders,      aggregator::distinct<device_t>,
         wave__leaders,      aggregator::distinct<device_t>,
-        wav2__leaders,      aggregator::distinct<device_t>,
-        wav3__leaders,      aggregator::distinct<device_t>,
         colr__leaders,      aggregator::distinct<device_t>,
+        fwav__leaders,      aggregator::distinct<device_t>,
+        fcol__leaders,      aggregator::distinct<device_t>,
 
-//        diam__filtered,     aggregator::distinct<device_t>,
-        wave__filtered,     aggregator::distinct<device_t>,
-        wav2__filtered,     aggregator::distinct<device_t>,
-        wav3__filtered,     aggregator::distinct<device_t>,
-        colr__filtered,     aggregator::distinct<device_t>,
-
-//        diam__correct,      aggregator::sum<int>,
         wave__correct,      aggregator::sum<int>,
-        wav2__correct,      aggregator::sum<int>,
-        wav3__correct,      aggregator::sum<int>,
-        colr__correct,      aggregator::sum<int>
+        colr__correct,      aggregator::sum<int>,
+        fwav__correct,      aggregator::sum<int>,
+        fcol__correct,      aggregator::sum<int>,
+
+        wave__spurious,     aggregator::sum<int>,
+        colr__spurious,     aggregator::sum<int>,
+        fwav__spurious,     aggregator::sum<int>,
+        fcol__spurious,     aggregator::sum<int>
     >,
     tuple_store<
         area,               double,
         die_time,           times_t,
         speed,              double,
 
-        diam__leaders,      device_t,
         wave__leaders,      device_t,
-        wav2__leaders,      device_t,
-        wav3__leaders,      device_t,
         colr__leaders,      device_t,
+        fwav__leaders,      device_t,
+        fcol__leaders,      device_t,
 
-        diam__filtered,     device_t,
-        wave__filtered,     device_t,
-        wav2__filtered,     device_t,
-        wav3__filtered,     device_t,
-        colr__filtered,     device_t,
-
-        diam__correct,      int,
         wave__correct,      int,
-        wav2__correct,      int,
-        wav3__correct,      int,
-        colr__correct,      int
+        colr__correct,      int,
+        fwav__correct,      int,
+        fcol__correct,      int,
+
+        wave__spurious,     int,
+        colr__spurious,     int,
+        fwav__spurious,     int,
+        fcol__spurious,     int
     >,
     spawn_schedule<spawn_s<is_sync>>,
     init<
@@ -111,11 +105,11 @@ DECLARE_OPTIONS(opt,
     connector<connect::fixed<>>
 );
 
-auto make_parameters(bool is_sync, std::string var = "none") {
+auto make_parameters(bool is_sync, int runs, std::string var = "none") {
     return batch::make_tagged_tuple_sequence(
         batch::arithmetic<seed>(0, runs-1, 1),
         batch::constant<sync>(is_sync),
-        batch::arithmetic<speed>(0.25 * (var == "speed"), 0.5 * (var == "speed"), 0.25),
+        batch::arithmetic<speed>(0.05 * (var == "speed"), 1.001 * (var == "speed"), 0.05),
         batch::arithmetic<dens>(10 + 10 * (var != "dens"), 40, 30),
         batch::arithmetic<area>(10 + 10 * (var != "area"), 40, 30),
         batch::stringify<output>("output/raw/experiment", "txt"),
@@ -126,17 +120,11 @@ auto make_parameters(bool is_sync, std::string var = "none") {
     );
 }
 
-template <bool is_sync>
-void runner() {
-    batch::run(component::batch_simulator<opt<is_sync>>{},
-               make_parameters(is_sync),
-               make_parameters(is_sync, "speed"),
-               make_parameters(is_sync, "dens"),
-               make_parameters(is_sync, "area"));
-}
-
 int main() {
-    runner<true>();
-    runner<false>();
+    batch::run(component::batch_simulator<opt<true>>{},
+               make_parameters(true, runs*5));
+    batch::run(component::batch_simulator<opt<false>>{},
+               make_parameters(false, runs*5),
+               make_parameters(false, runs, "speed"));
     return 0;
 }
