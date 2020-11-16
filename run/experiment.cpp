@@ -61,13 +61,22 @@ using aggregator_t = aggregators<
         spurious<fcol>,     aggregator::sum<int>
     >;
 
+struct custom_filter {
+    template <typename V>
+    bool operator()(V v) const {
+        if (50 <= v and v <= 100) return true;
+        if (150 <= v and v <= 200) return true;
+        return false;
+    }
+};
+
 template <typename xvar, template<class> class yvar, typename bucket, typename aggr>
 using plot_t = plot::split<xvar, plot::values<aggregator_t, common::type_sequence<aggr>, plot::unit<yvar>>, bucket>;
 template <typename xvar, typename bucket, typename aggr>
 using plot_row_t = plot::join<plot_t<xvar, leaders, bucket, aggr>, plot_t<xvar, correct, bucket, aggr>, plot_t<xvar, spurious, bucket, aggr>>;
 template <typename xvar, typename fvar, typename bucket = std::ratio<0>, typename aggr = aggregator::mean<double>>
 using plot_page_t = plot::filter<fvar, filter::equal<0>, plot::split<sync, plot_row_t<xvar, bucket, aggr>>>;
-using plotter_t = plot::join<plot_page_t<plot::time, speed>, plot_page_t<plot::time, speed, std::ratio<5>>, plot::filter<plot::time, filter::above<100>, plot_page_t<speed, sync>>, plot_page_t<speed, sync>>;
+using plotter_t = plot::join<plot_page_t<plot::time, speed>, plot::filter<plot::time, filter::above<100>, plot_page_t<speed, sync>>, plot::filter<plot::time, filter::below<100>, plot_page_t<speed, sync>>, plot::filter<plot::time, custom_filter, plot_page_t<speed, sync>>>;
 
 
 template <bool is_sync>
@@ -124,7 +133,7 @@ auto make_parameters(bool is_sync, int runs, std::string var = "none") {
     return batch::make_tagged_tuple_sequence(
         batch::arithmetic<seed>(0, runs-1, 1),
         batch::constant<sync>(is_sync),
-        batch::arithmetic<speed>(0.05 * (var == "speed"), 1.001 * (var == "speed"), 0.05),
+        batch::arithmetic<speed>(0.025 * (var == "speed"), 1.001 * (var == "speed"), 0.025),
         batch::arithmetic<dens>(10 + 10 * (var != "dens"), 40, 30),
         batch::arithmetic<area>(10 + 10 * (var != "area"), 40, 30),
         batch::stringify<output>("output/raw/experiment", "txt"),
