@@ -9,7 +9,7 @@ using namespace common::tags;
 using namespace component::tags;
 using namespace coordination::tags;
 
-constexpr int runs = 100;
+constexpr int runs = 1000;
 
 struct sync {};      // whether it is synchronous           = true, false
 struct dens {};      // average density                     = 10, 20, 30
@@ -61,13 +61,13 @@ using aggregator_t = aggregators<
         spurious<fcol>,     aggregator::sum<int>
     >;
 
-template <typename xvar, template<class> class yvar>
-using plot_t = plot::plotter<aggregator_t, xvar, yvar>;
-template <typename xvar>
-using plot_row_t = plot::join<plot_t<xvar, leaders>, plot_t<xvar, correct>, plot_t<xvar, spurious>>;
-template <typename xvar, typename fvar>
-using plot_page_t = plot::filter<fvar, filter::equal<0>, plot::split<sync, plot_row_t<xvar>>>;
-using plotter_t = plot::join<plot_page_t<plot::time, speed>, plot::filter<plot::time, filter::above<100>, plot_page_t<speed, sync>>, plot_page_t<speed, sync>>;
+template <typename xvar, template<class> class yvar, typename bucket, typename aggr>
+using plot_t = plot::split<xvar, plot::values<aggregator_t, common::type_sequence<aggr>, plot::unit<yvar>>, bucket>;
+template <typename xvar, typename bucket, typename aggr>
+using plot_row_t = plot::join<plot_t<xvar, leaders, bucket, aggr>, plot_t<xvar, correct, bucket, aggr>, plot_t<xvar, spurious, bucket, aggr>>;
+template <typename xvar, typename fvar, typename bucket = std::ratio<0>, typename aggr = aggregator::mean<double>>
+using plot_page_t = plot::filter<fvar, filter::equal<0>, plot::split<sync, plot_row_t<xvar, bucket, aggr>>>;
+using plotter_t = plot::join<plot_page_t<plot::time, speed>, plot_page_t<plot::time, speed, std::ratio<5>>, plot::filter<plot::time, filter::above<100>, plot_page_t<speed, sync>>, plot_page_t<speed, sync>>;
 
 
 template <bool is_sync>
