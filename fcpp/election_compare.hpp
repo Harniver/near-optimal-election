@@ -35,20 +35,17 @@ namespace tags {
 
     //! @brief Output values.
     //! @{
-    struct wave__leaders {};
-    struct colr__leaders {};
-    struct fwav__leaders {};
-    struct fcol__leaders {};
+    template <typename T>
+    struct leaders {};
+    template <typename T>
+    struct correct {};
+    template <typename T>
+    struct spurious {};
 
-    struct wave__correct {};
-    struct colr__correct {};
-    struct fwav__correct {};
-    struct fcol__correct {};
-
-    struct wave__spurious {};
-    struct colr__spurious {};
-    struct fwav__spurious {};
-    struct fcol__spurious {};
+    struct wave {};
+    struct colr {};
+    struct fwav {};
+    struct fcol {};
     //! @}
 }
 
@@ -76,20 +73,20 @@ FUN() void election_compare(ARGS) { CODE
     device_t fwav = stabiliser(CALL, wave, 4);
     device_t fcol = stabiliser(CALL, colr, 4);
 
-    node.storage(tags::wave__leaders{}) = wave;
-    node.storage(tags::colr__leaders{}) = colr;
-    node.storage(tags::fwav__leaders{}) = fwav;
-    node.storage(tags::fcol__leaders{}) = fcol;
+    node.storage(tags::leaders<tags::wave>{}) = wave;
+    node.storage(tags::leaders<tags::colr>{}) = colr;
+    node.storage(tags::leaders<tags::fwav>{}) = fwav;
+    node.storage(tags::leaders<tags::fcol>{}) = fcol;
 
-    node.storage(tags::wave__correct{}) = wave == perturbation;
-    node.storage(tags::colr__correct{}) = colr == perturbation;
-    node.storage(tags::fwav__correct{}) = fwav == perturbation;
-    node.storage(tags::fcol__correct{}) = fcol == perturbation;
+    node.storage(tags::correct<tags::wave>{}) = wave == perturbation;
+    node.storage(tags::correct<tags::colr>{}) = colr == perturbation;
+    node.storage(tags::correct<tags::fwav>{}) = fwav == perturbation;
+    node.storage(tags::correct<tags::fcol>{}) = fcol == perturbation;
 
-    node.storage(tags::wave__spurious{}) = wave > perturbation;
-    node.storage(tags::colr__spurious{}) = colr > perturbation;
-    node.storage(tags::fwav__spurious{}) = fwav > perturbation;
-    node.storage(tags::fcol__spurious{}) = fcol > perturbation;
+    node.storage(tags::spurious<tags::wave>{}) = wave > perturbation;
+    node.storage(tags::spurious<tags::colr>{}) = colr > perturbation;
+    node.storage(tags::spurious<tags::fwav>{}) = fwav > perturbation;
+    node.storage(tags::spurious<tags::fcol>{}) = fcol > perturbation;
 }
 
 

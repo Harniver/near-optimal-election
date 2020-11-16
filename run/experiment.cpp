@@ -44,6 +44,32 @@ using export_s = sequence::periodic<d0, d1, distribution::constant_i<times_t, en
 
 using rectangle_d = distribution::rect<d0, d0, distribution::constant_i<double, area>, d2>;
 
+using aggregator_t = aggregators<
+        leaders<wave>,      aggregator::distinct<device_t>,
+        leaders<colr>,      aggregator::distinct<device_t>,
+        leaders<fwav>,      aggregator::distinct<device_t>,
+        leaders<fcol>,      aggregator::distinct<device_t>,
+
+        correct<wave>,      aggregator::sum<int>,
+        correct<colr>,      aggregator::sum<int>,
+        correct<fwav>,      aggregator::sum<int>,
+        correct<fcol>,      aggregator::sum<int>,
+
+        spurious<wave>,     aggregator::sum<int>,
+        spurious<colr>,     aggregator::sum<int>,
+        spurious<fwav>,     aggregator::sum<int>,
+        spurious<fcol>,     aggregator::sum<int>
+    >;
+
+template <typename xvar, template<class> class yvar>
+using plot_t = plot::plotter<aggregator_t, xvar, yvar>;
+template <typename xvar>
+using plot_row_t = plot::join<plot_t<xvar, leaders>, plot_t<xvar, correct>, plot_t<xvar, spurious>>;
+template <typename xvar, typename fvar>
+using plot_page_t = plot::filter<fvar, filter::equal<0>, plot::split<sync, plot_row_t<xvar>>>;
+using plotter_t = plot::join<plot_page_t<plot::time, speed>, plot::filter<plot::time, filter::above<100>, plot_page_t<speed, sync>>, plot_page_t<speed, sync>>;
+
+
 template <bool is_sync>
 DECLARE_OPTIONS(opt,
     synchronised<is_sync>,
@@ -57,42 +83,29 @@ DECLARE_OPTIONS(opt,
         tuple<bool,device_t,int,device_t>, tuple<bool,device_t,int,device_t,bool>
     >,
     log_schedule<export_s>,
-    aggregators<
-        wave__leaders,      aggregator::distinct<device_t>,
-        colr__leaders,      aggregator::distinct<device_t>,
-        fwav__leaders,      aggregator::distinct<device_t>,
-        fcol__leaders,      aggregator::distinct<device_t>,
-
-        wave__correct,      aggregator::sum<int>,
-        colr__correct,      aggregator::sum<int>,
-        fwav__correct,      aggregator::sum<int>,
-        fcol__correct,      aggregator::sum<int>,
-
-        wave__spurious,     aggregator::sum<int>,
-        colr__spurious,     aggregator::sum<int>,
-        fwav__spurious,     aggregator::sum<int>,
-        fcol__spurious,     aggregator::sum<int>
-    >,
+    aggregator_t,
     tuple_store<
         area,               double,
         die_time,           times_t,
         speed,              double,
 
-        wave__leaders,      device_t,
-        colr__leaders,      device_t,
-        fwav__leaders,      device_t,
-        fcol__leaders,      device_t,
+        leaders<wave>,      device_t,
+        leaders<colr>,      device_t,
+        leaders<fwav>,      device_t,
+        leaders<fcol>,      device_t,
 
-        wave__correct,      int,
-        colr__correct,      int,
-        fwav__correct,      int,
-        fcol__correct,      int,
+        correct<wave>,      int,
+        correct<colr>,      int,
+        correct<fwav>,      int,
+        correct<fcol>,      int,
 
-        wave__spurious,     int,
-        colr__spurious,     int,
-        fwav__spurious,     int,
-        fcol__spurious,     int
+        spurious<wave>,     int,
+        spurious<colr>,     int,
+        spurious<fwav>,     int,
+        spurious<fcol>,     int
     >,
+    extra_info<sync, int, speed, double>,
+    plot_type<plotter_t>,
     spawn_schedule<spawn_s<is_sync>>,
     init<
         x,          rectangle_d,
@@ -105,6 +118,8 @@ DECLARE_OPTIONS(opt,
     connector<connect::fixed<>>
 );
 
+plotter_t P;
+
 auto make_parameters(bool is_sync, int runs, std::string var = "none") {
     return batch::make_tagged_tuple_sequence(
         batch::arithmetic<seed>(0, runs-1, 1),
@@ -113,6 +128,7 @@ auto make_parameters(bool is_sync, int runs, std::string var = "none") {
         batch::arithmetic<dens>(10 + 10 * (var != "dens"), 40, 30),
         batch::arithmetic<area>(10 + 10 * (var != "area"), 40, 30),
         batch::stringify<output>("output/raw/experiment", "txt"),
+        batch::constant<plotter>(&P),
         batch::formula<round_dev>([&](auto const& t){ return is_sync ? 0 : 0.25; }),
         batch::formula<dev_num  >([ ](auto const& t){ return (common::get<dens>(t)*common::get<area>(t)*200)/314; }),
         batch::formula<end_time >([ ](auto const& t){ return common::get<area>(t)*10; }),
@@ -126,5 +142,6 @@ int main() {
     batch::run(component::batch_simulator<opt<false>>{},
                make_parameters(false, runs*5),
                make_parameters(false, runs, "speed"));
+    std::cout << plot::file("experiment", P.build());
     return 0;
 }
