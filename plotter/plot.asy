@@ -6,7 +6,7 @@ pair OFFS = (2,2.5); // spacing between plots
 int  ROWS = 2;       // rows of plots per page
 int  COLS = 3;       // columns of plots per page
 real MAX_CROP = 1.1; // maximum cropping allowed (usually 1.3)
-real LOG_LIN = 2;    // factor of comparison between linear and logarithmic plots
+real LOG_LIN = 10;   // factor of comparison between linear and logarithmic plots
 
 // line styles and colors
 pen[] styles = {solid+1, linetype(new real[] {10,5})+1, linetype(new real[] {6,3,0.5,3})+1, linetype(new real[] {1,2.5})+1};
